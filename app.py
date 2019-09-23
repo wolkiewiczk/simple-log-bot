@@ -193,6 +193,8 @@ async def cleaning_list(ctx):
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
+    if message.author.id == bot.user.id:
+        return
     target_id = bot.observables.get(message.guild.id, {}).get(message.channel.id)
     if not target_id:
         return
