@@ -125,7 +125,7 @@ async def cleaning(ctx, target_name=None, expire_time="3", schedule_interval="0:
         return
 
     def check_message(message):
-        return datetime.utcnow() - delta > message.created_at
+        return datetime.utcnow() - delta > message.created_at and not message.pinned
 
     @tasks.loop(**interval)
     async def clean():
