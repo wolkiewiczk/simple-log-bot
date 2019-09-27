@@ -200,11 +200,48 @@ async def on_message(message):
         return
     target = bot.get_channel(target_id)
     content = (
-        f"{str(message.author)} {message.created_at.strftime('%m-%d-%Y %H:%M:%S')} UTC:\n"
+        f"**{str(message.author)}** {message.created_at.strftime('%m-%d-%Y %H:%M:%S')} UTC:\n"
         f"{message.content}\n"
     )
     attachments = await prepare_attachments(message)
     await target.send(content, files=attachments)
+
+
+@bot.event
+async def on_message_edit(before, after):
+    if before.content == after.content:
+        return
+    target_id = bot.observables.get(after.guild.id, {}).get(after.channel.id)
+    if not target_id:
+        return
+    target = bot.get_channel(target_id)
+    time = f" on {after.edited_at.strftime} UTC" if after.edited_at else ""
+    content = (
+        f"**{str(before.author)} performed edit{time}:**\n"
+        f"*Old message:*\n||{before.content}||\n"
+        f"*New message:*\n{after.content}"
+    )
+    attachments = await prepare_attachments(after)
+    await target.send(content, files=attachments)
+
+
+# Uncomment after discord.py appears in pip.
+# @bot.event
+# async def on_raw_message_edit(payload):
+#     if payload.cached_message:
+#         return
+#     message = bot.fe(payload.message_id)
+#     target_id = bot.observables.get(message.guild.id, {}).get(message.channel.id)
+#     if not target_id:
+#         return
+#     target = bot.get_channel(target_id)
+#     content = (
+#         f"{str(message.author)} performed edit on {message.edited_at.strftime('%m-%d-%Y %H:%M:%S')} UTC:\n"
+#         f"New message:\n{message.content}\n"
+#         f"Old message content unknown because I could not find it in my message cache. Sorry!"
+#     )
+#     attachments = await prepare_attachments(message)
+#     await target.send(content, files=attachments)
 
 
 bot.run(oeg('LOG_BOT_TOKEN'))
