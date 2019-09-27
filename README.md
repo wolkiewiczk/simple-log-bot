@@ -1,4 +1,4 @@
-# Spy boy v.0.1.1
+# Spy boy v.0.1.2
 Usually calls himself "Simple log bot" to stay undercover. Spy boy is a bot that looks form behind a corner to
 text channels of your interests and writes down everything he sees to the other channel. Rumors say that in future 
 he will be trained to perform some special missions such as spying a single person on the server.

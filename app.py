@@ -25,6 +25,7 @@ async def ping(ctx):
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def spy(ctx, source_name=None, target_name=None):
     if not source_name:
         await ctx.send('Please provide a channel name to spy.')
@@ -61,6 +62,7 @@ async def spy(ctx, source_name=None, target_name=None):
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def spy_list(ctx):
     message_content = ""
     guild_observables = bot.observables.get(ctx.guild.id)
@@ -81,6 +83,7 @@ async def spy_list(ctx):
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def spy_stop(ctx, source_name=None):
     if not source_name:
         await ctx.send('Please provide a channel name to remove from spy list.')
@@ -106,6 +109,7 @@ async def spy_stop(ctx, source_name=None):
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def cleaning(ctx, target_name=None, expire_time="3", schedule_interval="0:0:10"):
     if not target_name:
         await ctx.send('Please provide a channel name to schedule cleaning.')
@@ -143,6 +147,7 @@ async def cleaning(ctx, target_name=None, expire_time="3", schedule_interval="0:
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def cleaning_stop(ctx, target_name=None):
     if not target_name:
         await ctx.send('Please provide a channel name to remove cleaning.')
@@ -174,6 +179,7 @@ async def cleaning_stop(ctx, target_name=None):
 
 
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def cleaning_list(ctx):
     # todo: add message expire listing and cleaning interval
     guild_cleanings = bot.cleanings.get(ctx.guild.id)
