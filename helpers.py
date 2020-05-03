@@ -1,7 +1,9 @@
 import io
 import re
-from discord import File
 from itertools import zip_longest
+
+import requests
+from discord import File
 
 
 async def prepare_attachments(message):
@@ -11,6 +13,24 @@ async def prepare_attachments(message):
         file = File(io.BytesIO(file_bytes), filename=attachment.filename)
         to_attach.append(file)
     return to_attach
+
+
+async def prepare_raw_attachments(message):
+    to_attach = []
+    warning = None
+    for attachment in message['attachments']:
+        try:
+            response = requests.get(attachment['url'])
+        except requests.RequestException:
+            warning = '*WARNING: Could not retrieve some of the attachments of the message!*'
+            continue
+        else:
+            if response.status_code != requests.codes.ok:
+                warning = '*WARNING: Could not retrieve some of the attachments of the message!*'
+                continue
+        file = File(io.BytesIO(response.content), filename=attachment['filename'])
+        to_attach.append(file)
+    return to_attach, warning
 
 
 def strp_arg_time(time_str):

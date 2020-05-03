@@ -1,5 +1,5 @@
 from discord.ext import commands
-from helpers import prepare_attachments, strp_arg_time
+from helpers import prepare_attachments, prepare_raw_attachments, strp_arg_time
 from datetime import timedelta, datetime
 from discord.ext import tasks
 from pymongo import MongoClient
@@ -286,9 +286,9 @@ async def on_message_edit(before, after):
     if not target_id:
         return
     target = bot.get_channel(int(target_id))
-    time = f" on {after.edited_at.strftime} UTC" if after.edited_at else ""
+    time = f" on {after.edited_at.strftime('%m-%d-%Y %H:%M:%S')} UTC" if after.edited_at else ""
     content = (
-        f"**{before.author} performed edit{time}:**\n"
+        f"**{before.author}** performed edit{time}:\n"
         f"*Old message:*\n||{before.content}||\n"
         f"*New message:*\n{after.content}"
     )
@@ -296,23 +296,29 @@ async def on_message_edit(before, after):
     await target.send(content, files=attachments)
 
 
-# Uncomment after discord.py in newer version appears in pip.
-# @bot.event
-# async def on_raw_message_edit(payload):
-#     if payload.cached_message:
-#         return
-#     message = bot.fe(payload.message_id)
-#     target_id = bot.observables.get(message.guild.id, {}).get(message.channel.id)
-#     if not target_id:
-#         return
-#     target = bot.get_channel(target_id)
-#     content = (
-#         f"{str(message.author)} performed edit on {message.edited_at.strftime('%m-%d-%Y %H:%M:%S')} UTC:\n"
-#         f"New message:\n{message.content}\n"
-#         f"Old message content unknown because I could not find it in my message cache. Sorry!"
-#     )
-#     attachments = await prepare_attachments(message)
-#     await target.send(content, files=attachments)
+@bot.event
+async def on_raw_message_edit(payload):
+    # cached messages are supported by different method.
+    if payload.cached_message:
+        return
+    message = payload.data
+    guild_document = collection.find_one({'guild': message['guild_id']}) or {}
+    guild_observables = guild_document.get('observables', {})
+    target_id = guild_observables.get(str(payload.channel_id))
+    if not target_id:
+        return
+    target = bot.get_channel(int(target_id))
+    content = (
+        f"**{message['author']['username']}{message['author']['discriminator']}** performed edit on "
+        f"{datetime.fromisoformat(message['edited_timestamp']).strftime('%m-%d-%Y %H:%M:%S')} UTC:\n"
+        f"*New message:*\n{message['content']}\n"
+        f"*Old message content unknown because I could not find it in my message cache "
+        f"(the message is too old). Sorry!*"
+    )
+    attachments, warning = await prepare_raw_attachments(message)
+    if warning:
+        content = f'{content}\n{warning}'
+    await target.send(content, files=attachments)
 
 
 bot.run(settings.DISCORD_TOKEN)
